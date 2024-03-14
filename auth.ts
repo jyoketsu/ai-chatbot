@@ -1,39 +1,51 @@
-import NextAuth, { type DefaultSession } from 'next-auth'
-import GitHub from 'next-auth/providers/github'
+import NextAuth from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { authConfig } from './auth.config'
+import { z } from 'zod'
+import { getUserByToken, login } from './app/soarApi'
 
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      /** The user's id. */
-      id: string
-    } & DefaultSession['user']
-  }
-}
+export const { auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  providers: [
+    CredentialsProvider({
+      async authorize(credentials, req) {
+        if (credentials.token) {
+          const user = await getUserByToken(credentials.token as string)
+          if (user) {
+            return {
+              id: user._key,
+              name: user.userName,
+              email: user.email,
+              image: user.userAvatar
+            }
+          } else {
+            return null
+          }
+        } else {
+          const parsedCredentials = z
+            .object({ mobile: z.string(), password: z.string().min(6) })
+            .safeParse(credentials)
 
-export const {
-  handlers: { GET, POST },
-  auth
-} = NextAuth({
-  providers: [GitHub],
-  callbacks: {
-    jwt({ token, profile }) {
-      if (profile) {
-        token.id = profile.id
-        token.image = profile.avatar_url || profile.picture
+          if (parsedCredentials.success) {
+            const { mobile, password } = parsedCredentials.data
+
+            const user = await login(mobile, password)
+            if (user) {
+              return {
+                id: user._key,
+                name: user.userName,
+                email: user.email,
+                image: user.userAvatar
+              }
+            } else {
+              return null
+            }
+          }
+        }
+
+        console.log('Invalid credentials')
+        return null
       }
-      return token
-    },
-    session: ({ session, token }) => {
-      if (session?.user && token?.id) {
-        session.user.id = String(token.id)
-      }
-      return session
-    },
-    authorized({ auth }) {
-      return !!auth?.user // this ensures there is a logged in user for -every- request
-    }
-  },
-  pages: {
-    signIn: '/sign-in' // overrides the next-auth default signin page https://authjs.dev/guides/basics/pages
-  }
+    })
+  ]
 })

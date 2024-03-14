@@ -4,8 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { kv } from '@vercel/kv'
 
-import { auth } from '@/auth'
+import { auth, signIn } from '@/auth'
 import { type Chat } from '@/lib/types'
+import { AuthError } from 'next-auth'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -126,4 +127,23 @@ export async function shareChat(id: string) {
   await kv.hmset(`chat:${chat.id}`, payload)
 
   return payload
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  try {
+    await signIn('credentials', formData)
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return '登录失败！'
+        default:
+          return '服务出错！'
+      }
+    }
+    throw error
+  }
 }

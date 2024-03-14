@@ -17,6 +17,8 @@ import { ChatHistory } from './chat-history'
 
 async function UserOrLogin() {
   const session = await auth()
+  console.log('--------------------------------------session', session)
+
   return (
     <>
       {session?.user ? (
@@ -33,14 +35,13 @@ async function UserOrLogin() {
         </Link>
       )}
       <div className="flex items-center">
-        <IconSeparator className="size-6 text-muted-foreground/50" />
+        {/* <IconSeparator className="size-6 text-muted-foreground/50" /> */}
         {session?.user ? (
           <UserMenu user={session.user} />
-        ) : (
-          <Button variant="link" asChild className="-ml-2">
-            <Link href="/sign-in?callbackUrl=/">Login</Link>
-          </Button>
-        )}
+        ) : // <Button variant="link" asChild className="-ml-2">
+        //   <Link href="/sign-in?callbackUrl=/">Login</Link>
+        // </Button>
+        null}
       </div>
     </>
   )
@@ -55,7 +56,7 @@ export function Header() {
         </React.Suspense>
       </div>
       <div className="flex items-center justify-end space-x-2">
-        <a
+        {/* <a
           target="_blank"
           href="https://github.com/vercel/nextjs-ai-chatbot/"
           rel="noopener noreferrer"
@@ -63,8 +64,8 @@ export function Header() {
         >
           <IconGitHub />
           <span className="hidden ml-2 md:flex">GitHub</span>
-        </a>
-        <a
+        </a> */}
+        {/* <a
           href="https://github.com/vercel/nextjs-ai-chatbot/"
           target="_blank"
           className={cn(buttonVariants())}
@@ -72,7 +73,7 @@ export function Header() {
           <IconVercel className="mr-2" />
           <span className="hidden sm:block">Deploy to Vercel</span>
           <span className="sm:hidden">Deploy</span>
-        </a>
+        </a> */}
       </div>
     </header>
   )
