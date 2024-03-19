@@ -8,7 +8,7 @@ export default function AutoLogin({ token }: { token: string }) {
   useEffect(() => {
     let formData = new FormData()
     formData.append('token', token)
-    // authenticate(undefined, formData)
+    authenticate(undefined, formData)
   }, [token])
 
   return (
