@@ -15,9 +15,10 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       // return !!auth?.user // this ensures there is a logged in user for -every- request
       const isLoggedIn = !!auth?.user
-      if (isLoggedIn && nextUrl.pathname.startsWith('/sign-in')) {
+      // console.log('-----auth---', isLoggedIn, nextUrl.pathname, auth)
+      if (isLoggedIn && nextUrl.pathname.includes('/sign-in')) {
         console.log('nextUrl.pathname', nextUrl.pathname, nextUrl)
-        return Response.redirect(new URL('/', nextUrl))
+        return Response.redirect(new URL('/chatbot', nextUrl))
       }
       return !!auth?.user
     }

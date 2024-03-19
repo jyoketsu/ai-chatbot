@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { getChat } from '@/app/actions'
 import { Chat } from '@/components/chat'
+import { nanoid } from '@/lib/utils'
 
 export interface ChatPageProps {
   params: {
@@ -11,20 +12,20 @@ export interface ChatPageProps {
   }
 }
 
-export async function generateMetadata({
-  params
-}: ChatPageProps): Promise<Metadata> {
-  const session = await auth()
+// export async function generateMetadata({
+//   params
+// }: ChatPageProps): Promise<Metadata> {
+//   const session = await auth()
 
-  if (!session?.user) {
-    return {}
-  }
+//   if (!session?.user) {
+//     return {}
+//   }
 
-  const chat = await getChat(params.id, session.user.id)
-  return {
-    title: chat?.title.toString().slice(0, 50) ?? 'Chat'
-  }
-}
+//   const chat = await getChat(params.id, session.user.id)
+//   return {
+//     title: chat?.title.toString().slice(0, 50) ?? 'Chat'
+//   }
+// }
 
 export default async function ChatPage({ params }: ChatPageProps) {
   const session = await auth()
@@ -33,15 +34,17 @@ export default async function ChatPage({ params }: ChatPageProps) {
     redirect(`/sign-in?next=/chat/${params.id}`)
   }
 
-  const chat = await getChat(params.id, session.user.id)
+  // const chat = await getChat(params.id, session.user.id)
 
-  if (!chat) {
-    notFound()
-  }
+  // if (!chat) {
+  //   notFound()
+  // }
 
-  if (chat?.userId !== session?.user?.id) {
-    notFound()
-  }
+  // if (chat?.userId !== session?.user?.id) {
+  //   notFound()
+  // }
 
-  return <Chat id={chat.id} initialMessages={chat.messages} />
+  const id = nanoid()
+  return <Chat id={id} />
+  // return <Chat id={chat.id} initialMessages={chat.messages} />
 }

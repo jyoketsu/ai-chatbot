@@ -4,7 +4,7 @@ import { authConfig } from './auth.config'
 import { z } from 'zod'
 import { getUserByToken, login } from './app/soarApi'
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   providers: [
     CredentialsProvider({

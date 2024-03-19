@@ -17,7 +17,6 @@ import { ChatHistory } from './chat-history'
 
 async function UserOrLogin() {
   const session = await auth()
-  console.log('--------------------------------------session', session)
 
   return (
     <>
