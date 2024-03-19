@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  basePath: '/chatbot',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   output: 'standalone',
   images: {
     remotePatterns: [

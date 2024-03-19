@@ -39,7 +39,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
-      api: '/chatbot/api/chat',
+      api: `${process.env.NEXT_PUBLIC_BASE_PATH}/api/chat`,
       initialMessages,
       id,
       body: {
@@ -53,7 +53,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       },
       onFinish() {
         if (!path.includes('chat')) {
-          window.history.pushState({}, '', `/chatbot/chat/${id}`)
+          window.history.pushState({}, '', `${process.env.NEXT_PUBLIC_BASE_PATH}/chat/${id}`)
         }
       }
     })

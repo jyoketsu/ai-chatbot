@@ -18,7 +18,9 @@ export const authConfig = {
       // console.log('-----auth---', isLoggedIn, nextUrl.pathname, auth)
       if (isLoggedIn && nextUrl.pathname.includes('/sign-in')) {
         console.log('nextUrl.pathname', nextUrl.pathname, nextUrl)
-        return Response.redirect(new URL('/chatbot', nextUrl))
+        return Response.redirect(
+          new URL(process.env.NEXT_PUBLIC_BASE_PATH || '/', nextUrl)
+        )
       }
       return !!auth?.user
     }
