@@ -44,19 +44,30 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       id,
       body: {
         id,
-        previewToken
+        previewToken,
+        system: ''
       },
       onResponse(response) {
         if (response.status === 401) {
           toast.error(response.statusText)
         }
       },
-      onFinish() {
+      onFinish(message) {
+        console.log('---finish messages---', messages)
+        // if (id) {
+        //   updateOrCreateChat(id, { test: 'test' })
+        // }
+
         if (!path.includes('chat')) {
-          window.history.pushState({}, '', `${process.env.NEXT_PUBLIC_BASE_PATH}/chat/${id}`)
+          window.history.pushState(
+            {},
+            '',
+            `${process.env.NEXT_PUBLIC_BASE_PATH}/chat/${id}`
+          )
         }
       }
     })
+
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>

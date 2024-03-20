@@ -1,9 +1,8 @@
-import { kv } from '@vercel/kv'
+import mongoose from 'mongoose'
 import { OpenAIStream, StreamingTextResponse } from 'ai'
 import OpenAI from 'openai'
 
 import { auth } from '@/auth'
-import { nanoid } from '@/lib/utils'
 
 export const runtime = 'edge'
 
@@ -15,13 +14,13 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
   const json = await req.json()
   const { messages, previewToken } = json
-  // const userId = (await auth())?.user.id
-
-  // if (!userId) {
-  //   return new Response('Unauthorized', {
-  //     status: 401
-  //   })
-  // }
+  const userId = (await auth())?.user?.id
+  console.log('---userId---', userId)
+  if (!userId) {
+    return new Response('Unauthorized', {
+      status: 401
+    })
+  }
 
   if (previewToken) {
     openai.apiKey = previewToken
@@ -44,28 +43,39 @@ export async function POST(req: Request) {
   const stream = OpenAIStream(res, {
     async onCompletion(completion) {
       const title = json.messages[0].content.substring(0, 100)
-      const id = json.id ?? nanoid()
-      const createdAt = Date.now()
+      const objectId = new mongoose.Types.ObjectId()
+      const initId = objectId.toString()
+
+      const id = json.id ?? initId
+
+      // const createdAt = Date.now()
       const path = `/chat/${id}`
-      // const payload = {
-      //   id,
-      //   title,
-      //   userId,
-      //   createdAt,
-      //   path,
-      //   messages: [
-      //     ...messages,
-      //     {
-      //       content: completion,
-      //       role: 'assistant'
-      //     }
-      //   ]
-      // }
-      // await kv.hmset(`chat:${id}`, payload)
-      // await kv.zadd(`user:chat:${userId}`, {
-      //   score: createdAt,
-      //   member: `chat:${id}`
-      // })
+      const payload = {
+        id,
+        title,
+        userId,
+        // createdAt,
+        path,
+        messages: [
+          ...messages,
+          {
+            content: completion,
+            role: 'assistant'
+          }
+        ]
+      }
+
+      try {
+        await fetch('http://localhost:3000/chatbot/api/chats', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        })
+      } catch (error) {
+        console.log('---error---', error)
+      }
     }
   })
 

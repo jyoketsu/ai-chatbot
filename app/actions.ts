@@ -2,11 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { kv } from '@vercel/kv'
-
 import { auth, signIn } from '@/auth'
 import { type Chat } from '@/lib/types'
 import { AuthError } from 'next-auth'
+import dbConnect from '@/lib/dbConnect'
+import ChatDao from '@/lib/dao/chatDao'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -14,26 +14,19 @@ export async function getChats(userId?: string | null) {
   }
 
   try {
-    const pipeline = kv.pipeline()
-    const chats: string[] = await kv.zrange(`user:chat:${userId}`, 0, -1, {
-      rev: true
-    })
-
-    for (const chat of chats) {
-      pipeline.hgetall(chat)
-    }
-
-    const results = await pipeline.exec()
-
-    return results as Chat[]
+    await dbConnect()
+    let chatDao = new ChatDao()
+    const chats = await chatDao.getChats(userId)
+    return chats as Chat[]
   } catch (error) {
     return []
   }
 }
 
 export async function getChat(id: string, userId: string) {
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
-
+  await dbConnect()
+  let chatDao = new ChatDao()
+  const chat = await chatDao.findById(id)
   if (!chat || (userId && chat.userId !== userId)) {
     return null
   }
@@ -50,17 +43,20 @@ export async function removeChat({ id, path }: { id: string; path: string }) {
     }
   }
 
-  //Convert uid to string for consistent comparison with session.user.id
-  const uid = String(await kv.hget(`chat:${id}`, 'userId'))
+  await dbConnect()
 
-  if (uid !== session?.user?.id) {
+  //Convert uid to string for consistent comparison with session.user.id
+  let chatDao = new ChatDao()
+  const uidRes = await chatDao.findById(id, 'userId')
+  console.log('---uid---', uidRes)
+
+  if (uidRes.userId !== session?.user?.id) {
     return {
       error: 'Unauthorized'
     }
   }
 
-  await kv.del(`chat:${id}`)
-  await kv.zrem(`user:chat:${session.user.id}`, `chat:${id}`)
+  await chatDao.findByIdAndDelete(id)
 
   revalidatePath('/')
   return revalidatePath(path)
@@ -75,58 +71,54 @@ export async function clearChats() {
     }
   }
 
-  const chats: string[] = await kv.zrange(`user:chat:${session.user.id}`, 0, -1)
+  await dbConnect()
+  let chatDao = new ChatDao()
+
+  const chats = await chatDao.getChats(session.user.id, 'userId')
   if (!chats.length) {
     return redirect('/')
   }
-  const pipeline = kv.pipeline()
-
-  for (const chat of chats) {
-    pipeline.del(chat)
-    pipeline.zrem(`user:chat:${session.user.id}`, chat)
-  }
-
-  await pipeline.exec()
+  await chatDao.clearChats(session.user.id)
 
   revalidatePath('/')
   return redirect('/')
 }
 
 export async function getSharedChat(id: string) {
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  // const chat = await kv.hgetall<Chat>(`chat:${id}`)
 
-  if (!chat || !chat.sharePath) {
-    return null
-  }
+  // if (!chat || !chat.sharePath) {
+  //   return null
+  // }
 
-  return chat
+  // return chat
 }
 
 export async function shareChat(id: string) {
-  const session = await auth()
+  // const session = await auth()
 
-  if (!session?.user?.id) {
-    return {
-      error: 'Unauthorized'
-    }
-  }
+  // if (!session?.user?.id) {
+  //   return {
+  //     error: 'Unauthorized'
+  //   }
+  // }
 
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  // const chat = await kv.hgetall<Chat>(`chat:${id}`)
 
-  if (!chat || chat.userId !== session.user.id) {
-    return {
-      error: 'Something went wrong'
-    }
-  }
+  // if (!chat || chat.userId !== session.user.id) {
+  //   return {
+  //     error: 'Something went wrong'
+  //   }
+  // }
 
-  const payload = {
-    ...chat,
-    sharePath: `/share/${chat.id}`
-  }
+  // const payload = {
+  //   ...chat,
+  //   sharePath: `/share/${chat.id}`
+  // }
 
-  await kv.hmset(`chat:${chat.id}`, payload)
+  // await kv.hmset(`chat:${chat.id}`, payload)
 
-  return payload
+  // return payload
 }
 
 export async function authenticate(
