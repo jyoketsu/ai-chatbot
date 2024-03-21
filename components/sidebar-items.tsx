@@ -31,7 +31,7 @@ export function SidebarItems({ chats }: SidebarItemsProps) {
                 <SidebarActions
                   chat={chat}
                   removeChat={removeChat}
-                  shareChat={shareChat}
+                  // shareChat={shareChat}
                 />
               </SidebarItem>
             </motion.div>

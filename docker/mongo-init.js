@@ -1,5 +1,5 @@
 print(
-  `Start ################################################################# ${process.env.MONGO_APP_USER}:${process.env.MONGO_APP_PASSWORD}@${process.env.MONGO_APP_DATABASE}`
+  `Start ################################################################# ${process.env.MONGO_APP_USER}:${process.env.MONGO_APP_PASSWORD}@${process.env.MONGO_INITDB_DATABASE}`
 );
 // db.getSiblingDB("admin").auth(
 //   process.env.MONGO_INITDB_ROOT_USERNAME,
@@ -11,6 +11,6 @@ db.createUser({
   roles: [{ role: "readWrite", db: process.env.MONGO_INITDB_DATABASE }],
 });
 
-db.print(
+print(
   "END #################################################################"
 );
