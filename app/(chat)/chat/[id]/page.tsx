@@ -45,5 +45,11 @@ export default async function ChatPage({ params }: ChatPageProps) {
   }
 
   const id = nanoid()
-  return <Chat id={chat.id} initialMessages={chat.messages} />
+  return (
+    <Chat
+      id={chat.id}
+      initialMessages={chat.messages}
+      avatar={session.user.image}
+    />
+  )
 }

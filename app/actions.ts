@@ -7,6 +7,7 @@ import { type Chat } from '@/lib/types'
 import { AuthError } from 'next-auth'
 import dbConnect from '@/lib/dbConnect'
 import ChatDao from '@/lib/dao/chatDao'
+import { signOut } from '@/auth'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -39,7 +40,7 @@ export async function removeChat({ id, path }: { id: string; path: string }) {
 
   if (!session) {
     return {
-      error: 'Unauthorized'
+      error: '没有权限！'
     }
   }
 
@@ -52,14 +53,14 @@ export async function removeChat({ id, path }: { id: string; path: string }) {
 
   if (uidRes.userId !== session?.user?.id) {
     return {
-      error: 'Unauthorized'
+      error: '没有权限！'
     }
   }
 
   await chatDao.findByIdAndDelete(id)
 
-  revalidatePath('/')
-  return revalidatePath(path)
+  revalidatePath(process.env.NEXT_PUBLIC_BASE_PATH || '/')
+  return revalidatePath(`${process.env.NEXT_PUBLIC_BASE_PATH}${path}`)
 }
 
 export async function clearChats() {
@@ -67,7 +68,7 @@ export async function clearChats() {
 
   if (!session?.user?.id) {
     return {
-      error: 'Unauthorized'
+      error: '没有权限！'
     }
   }
 
@@ -80,44 +81,36 @@ export async function clearChats() {
   }
   await chatDao.clearChats(session.user.id)
 
-  revalidatePath('/')
+  revalidatePath(process.env.NEXT_PUBLIC_BASE_PATH || '/')
   return redirect('/')
 }
 
 export async function getSharedChat(id: string) {
   // const chat = await kv.hgetall<Chat>(`chat:${id}`)
-
   // if (!chat || !chat.sharePath) {
   //   return null
   // }
-
   // return chat
 }
 
 export async function shareChat(id: string) {
   // const session = await auth()
-
   // if (!session?.user?.id) {
   //   return {
   //     error: 'Unauthorized'
   //   }
   // }
-
   // const chat = await kv.hgetall<Chat>(`chat:${id}`)
-
   // if (!chat || chat.userId !== session.user.id) {
   //   return {
   //     error: 'Something went wrong'
   //   }
   // }
-
   // const payload = {
   //   ...chat,
   //   sharePath: `/share/${chat.id}`
   // }
-
   // await kv.hmset(`chat:${chat.id}`, payload)
-
   // return payload
 }
 
@@ -138,4 +131,12 @@ export async function authenticate(
     }
     throw error
   }
+}
+
+export async function refresh(path: string) {
+  revalidatePath(path)
+}
+
+export async function logout() {
+  await signOut()
 }

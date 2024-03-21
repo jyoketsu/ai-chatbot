@@ -2,7 +2,32 @@ version: '3'
 
 services:
   nextjs:
-    image: jyoketsu/soar-chatbot:0.0.4
+    image: jyoketsu/soar-chatbot:0.0.5
     ports:
-      - "3000:3000"
+      - "3001:3000"
     restart: always
+    environment:
+      - MONGODB_URI=mongodb://qingtime:qingtime123@mongodb:27018/chatbot
+
+ # https://hub.docker.com/_/mongo
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      # 在host创建左侧目录和.dbshell，用于记录历史，否则mongo会报无该路径或者文件
+      - ./docker/mongo_home/mongodb:/home/mongodb
+      # 映射数据目录
+      - ./docker/mongo_data:/data/db
+      # 映射dump目录
+      - ./docker/mongo_data/dump:/dump
+      # 映射初始化目录
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    ports:
+      - 27018:27017
+    # command: [ --auth ]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: qingtime!@#123
+      MONGO_INITDB_DATABASE: chatbot
+      MONGO_APP_USER: qingtime
+      MONGO_APP_PASSWORD: qingtime123

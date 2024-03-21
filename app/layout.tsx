@@ -16,9 +16,9 @@ export const metadata = {
   },
   description: '智能助手 - 您的全方位生活管理专家。',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png'
+    icon: `${process.env.NEXT_PUBLIC_BASE_PATH}/favicon.ico`,
+    shortcut: `${process.env.NEXT_PUBLIC_BASE_PATH}/favicon.ico`,
+    apple: `${process.env.NEXT_PUBLIC_BASE_PATH}/apple-touch-icon.png`
   }
 }
 

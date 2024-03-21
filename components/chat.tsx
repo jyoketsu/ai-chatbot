@@ -21,14 +21,16 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
+import { refresh } from '@/app/actions'
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
+  avatar?: string | null
 }
 
-export function Chat({ id, initialMessages, className }: ChatProps) {
+export function Chat({ id, initialMessages, className, avatar }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
@@ -53,17 +55,15 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         }
       },
       onFinish(message) {
-        console.log('---finish messages---', messages)
-        // if (id) {
-        //   updateOrCreateChat(id, { test: 'test' })
-        // }
-
         if (!path.includes('chat')) {
           window.history.pushState(
             {},
             '',
             `${process.env.NEXT_PUBLIC_BASE_PATH}/chat/${id}`
           )
+          setTimeout(() => {
+            refresh(`${process.env.NEXT_PUBLIC_BASE_PATH}/chat/${id}`)
+          }, 2000)
         }
       }
     })
@@ -73,7 +73,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
         {messages.length ? (
           <>
-            <ChatList messages={messages} />
+            <ChatList messages={messages} avatar={avatar} />
             <ChatScrollAnchor trackVisibility={isLoading} />
           </>
         ) : (
