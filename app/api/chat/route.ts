@@ -13,13 +13,16 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   const json = await req.json()
-  const { messages, previewToken } = json
   const userId = (await auth())?.user?.id
-  console.log('---userId---', userId)
-  if (!userId) {
-    return new Response('Unauthorized', {
-      status: 401
-    })
+  const { messages, previewToken, baokuToken } = json
+  if (baokuToken) {
+  } else {
+    console.log('---userId---', userId)
+    if (!userId) {
+      return new Response('Unauthorized', {
+        status: 401
+      })
+    }
   }
 
   if (previewToken) {
@@ -42,42 +45,48 @@ export async function POST(req: Request) {
 
   const stream = OpenAIStream(res, {
     async onCompletion(completion) {
-      const title = json.messages[0].content.substring(0, 100)
-      const objectId = new mongoose.Types.ObjectId()
-      const initId = objectId.toString()
+      if (!baokuToken) {
+        const title = json.messages[0].content.substring(0, 100)
+        const objectId = new mongoose.Types.ObjectId()
+        const initId = objectId.toString()
 
-      const id = json.id ?? initId
+        const id = json.id ?? initId
 
-      // const createdAt = Date.now()
-      const path = `/chat/${id}`
-      const payload = {
-        id,
-        title,
-        userId,
-        // createdAt,
-        path,
-        messages: [
-          ...messages,
-          {
-            content: completion,
-            role: 'assistant'
-          }
-        ]
-      }
+        // const createdAt = Date.now()
+        const path = `/chat/${id}`
+        const payload = {
+          id,
+          title,
+          userId,
+          // createdAt,
+          path,
+          messages: [
+            ...messages,
+            {
+              content: completion,
+              role: 'assistant'
+            }
+          ]
+        }
 
-      try {
-        await fetch('http://localhost:3000/chatbot/api/chats', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        })
-      } catch (error) {
-        console.log('---error---', error)
+        try {
+          await fetch('http://localhost:3000/chatbot/api/chats', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          })
+        } catch (error) {
+          console.log('---error---', error)
+        }
       }
     }
   })
 
   return new StreamingTextResponse(stream)
+}
+
+export function OPTIONS(req: Request) {
+  return new Response(null, { status: 200 })
 }
