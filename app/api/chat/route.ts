@@ -3,6 +3,11 @@ import { OpenAIStream, StreamingTextResponse } from 'ai'
 import OpenAI from 'openai'
 
 import { auth } from '@/auth'
+import {
+  authorizeByBaokuToken,
+  authorizeBySoarToken,
+  getUserByToken
+} from '@/app/soarApi'
 
 export const runtime = 'edge'
 
@@ -14,8 +19,21 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
   const json = await req.json()
   const userId = (await auth())?.user?.id
-  const { messages, previewToken, baokuToken } = json
-  if (baokuToken) {
+  const { messages, previewToken, soarToken, baokuToken } = json
+  if (soarToken) {
+    const user = await authorizeBySoarToken(soarToken)
+    if (!user) {
+      return new Response('Unauthorized', {
+        status: 401
+      })
+    }
+  } else if (baokuToken) {
+    const user = await authorizeByBaokuToken(baokuToken)
+    if (!user) {
+      return new Response('Unauthorized', {
+        status: 401
+      })
+    }
   } else {
     console.log('---userId---', userId)
     if (!userId) {

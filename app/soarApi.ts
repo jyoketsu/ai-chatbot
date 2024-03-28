@@ -2,6 +2,7 @@
 import axios from 'axios'
 
 const API_URL = process.env.SOAR_API_URL
+const BAOKU_API_URL = process.env.BAOKU_API_URL
 
 type Response = {
   msg: string
@@ -96,6 +97,30 @@ export async function login(mobile: string, password: string) {
   })
   if (res.status === 200) {
     return res.data
+  } else {
+    return null
+  }
+}
+
+export async function authorizeByBaokuToken(token: string) {
+  const res = await fetch(`${BAOKU_API_URL}/account/userinfo?token=${token}`)
+  const json: any = await res.json()
+  if (json.statusCode === '200') {
+    return json
+  } else {
+    return null
+  }
+}
+
+export async function authorizeBySoarToken(token: string) {
+  const res = await fetch(`${API_URL}/user`, {
+    headers: {
+      token: token
+    }
+  })
+  const json: any = await res.json()
+  if (json.status === 200) {
+    return json.data
   } else {
     return null
   }
